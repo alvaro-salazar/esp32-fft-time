@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FFT en vivo · © 2025 Alvaro Salazar</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+html,body{
+  margin:0;height:100%;background:#141414;color:#eee;
+  font-family:system-ui,-apple-system,sans-serif
+}
+#wrap{
+  display:flex;flex-direction:column;height:100%;
+  padding:1rem;gap:1rem;box-sizing:border-box
+}
+.chart-container{
+  flex:1;min-height:300px;background:#1a1a1a;
+  border-radius:8px;padding:1rem;
+  box-shadow:0 2px 4px rgba(0,0,0,.2)
+}
+canvas{width:100%!important;height:100%!important}
+@media(max-width:768px){
+  #wrap{padding:.5rem;gap:.5rem}
+  .chart-container{padding:.5rem}
+}
+</style>
+</head>
+
+<body>
+<div id="wrap">
+  <div class="chart-container"><canvas id="time"></canvas></div>
+  <div class="chart-container"><canvas id="fft"></canvas></div>
+</div>
+
+<script>
+/* ---------------- parámetros ---------------- */
+const N_SAMPLES   = 1024;          // igual que firmware
+const SAMPLE_RATE = 1000;          // Hz
+const ADC_MAX     = 4095;          // 12‑bit
+const V_REF       = 3.3;           // voltios
+const HZ_RES      = SAMPLE_RATE / N_SAMPLES;
+
+/* ------------- configuración base ------------ */
+function baseCfg(color){
+  return{
+    type:'line',
+    data:{labels:[],datasets:[{data:[],borderColor:color,borderWidth:1.5,pointRadius:0,tension:.4}]},
+    options:{
+      animation:false,responsive:true,maintainAspectRatio:false,
+      scales:{
+        x:{ticks:{color:'#aaa'},grid:{color:'#333',drawBorder:false},border:{display:false}},
+        y:{ticks:{color:'#aaa'},grid:{color:'#333',drawBorder:false},border:{display:false}}
+      },
+      plugins:{legend:{display:false}}
+    }
+  };
+}
+
+/* ------------- crear gráficos ---------------- */
+const chTime = new Chart(document.getElementById('time'), baseCfg('#00e0ff'));
+const chFFT  = new Chart(document.getElementById('fft'),  baseCfg('#ff4e00'));
+
+/* -------- eje tiempo: fijo 0‑3.3 V ---------- */
+Object.assign(chTime.options.scales, {
+  x:{...chTime.options.scales.x,
+     title:{display:true,text:'Tiempo [ms]',color:'#ccc',font:{size:14,weight:'500'},padding:{top:10}},
+     ticks:{callback:(_,i)=>(i*1000/SAMPLE_RATE)|0}},
+  y:{min:0,max:V_REF,beginAtZero:true,
+     title:{display:true,text:'Voltaje [V]',color:'#ccc',font:{size:14}},
+     ticks:{color:'#aaa',callback:v=>v.toFixed(1)+' V'}}
+});
+
+/* -------- eje FFT: etiquetas y tooltips en dB ---------- */
+Object.assign(chFFT.options.scales, {
+  x:{...chFFT.options.scales.x,
+     title:{display:true,text:'Frecuencia [Hz]',color:'#ccc',font:{size:14,weight:'500'},padding:{top:10}},
+     ticks:{callback:(_,i)=>(i*HZ_RES).toFixed(0)}},
+  y:{beginAtZero:true,    // deja que Chart.js ajuste internamente
+     title:{display:true,text:'Magnitud [dB]',color:'#ccc',font:{size:14}},
+     ticks:{
+       color:'#aaa',
+       callback:v=>{
+         const norm=v/ADC_MAX;
+         const dB=20*Math.log10(norm||1e-6);
+         return dB.toFixed(0)+' dB';
+       }
+     }}
+});
+
+/* tooltips FFT → dB */
+chFFT.options.plugins.tooltip={
+  backgroundColor:'rgba(0,0,0,.8)',padding:8,cornerRadius:4,displayColors:false,
+  callbacks:{
+    label:ctx=>{
+      const v=ctx.parsed.y;
+      const dB=20*Math.log10((v/ADC_MAX)||1e-6);
+      return dB.toFixed(1)+' dB';
+    }
+  }
+};
+
+/* -------------- WebSocket -------------------- */
+const ws=new WebSocket(`ws://${location.host}/ws`);
+ws.onmessage=({data})=>{
+  const pkt=JSON.parse(data);
+
+  /* ---- tiempo (voltios) ---- */
+  const volts=pkt.time.map(v=>v*V_REF/ADC_MAX);
+  chTime.data.labels           = volts.map((_,i)=>'');
+  chTime.data.datasets[0].data = volts;
+  chTime.update('none');
+
+  /* ---- FFT (sin modificar datos) ---- */
+  chFFT.data.labels            = pkt.freq.map((_,i)=>'');
+  chFFT.data.datasets[0].data  = pkt.freq;
+  chFFT.update('none');
+};
+
+/* reconexión simple */
+ws.onclose=()=>setTimeout(()=>location.reload(),2000);
+</script>
+<!-- crédito / autor -->
+<footer style="font-size:0.85rem;text-align:center;color:#888;margin-top:.5rem">
+  © 2025 Alvaro Salazar
+</footer>
+</body>
+</html>
