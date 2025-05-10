@@ -31,4 +31,5 @@ void listWiFiNetworks();            //< Función para listar las redes WiFi disp
 void startWiFi(const char* hostname);    //< Función para iniciar el servicio de WiFi
 void checkWiFi();                   //< Función para verificar la conexión a la red WiFi
 String getMacAddress();                //< Función para obtener la dirección MAC del dispositivo
+void setMDNS(const char* hostname);    //< Función para iniciar el servicio de mDNS
 #endif /* LIBWIFI_H */

@@ -1,7 +1,7 @@
 #include <WiFiClient.h>
 #include <WiFi.h>
 #include <libwifi.h>
-
+#include <ESPmDNS.h>
 
 /**
  * Verifica si el dispositivo está conectado al WiFi.
@@ -109,4 +109,16 @@ String getMacAddress() {
   snprintf(macStr, sizeof(macStr), "ESP32-%02X%02X%02X%02X%02X%02X", 
            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   return String(macStr);
+}
+
+void setMDNS(const char* hostname) {
+  if (!MDNS.begin(hostname)) {                // responde a fft32.local
+    Serial.println("mDNS no pudo iniciar");
+  } else {
+    MDNS.addService("http", "tcp", 80);       // anuncia servicio HTTP
+    MDNS.addServiceTxt("http", "tcp", "path", "/");
+    Serial.print("mDNS listo: http://");
+    Serial.print(hostname);
+    Serial.println(".local/");
+  }
 }
