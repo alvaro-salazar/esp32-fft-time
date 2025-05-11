@@ -1,3 +1,9 @@
+/*
+ * ESP32 FFT TIME - DSP
+ * Copyright (c) 2025 Alvaro Salazar
+ * Licensed under the MIT License.
+ */
+
 #include <driver/i2s.h>
 #include <driver/adc.h>
 #include <Arduino.h>

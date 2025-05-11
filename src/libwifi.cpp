@@ -1,3 +1,9 @@
+/*
+ * ESP32 FFT TIME - WiFi
+ * Copyright (c) 2025 Alvaro Salazar
+ * Licensed under the MIT License.
+ */
+
 #include <WiFiClient.h>
 #include <WiFi.h>
 #include <libwifi.h>

@@ -1,3 +1,14 @@
+/*
+ * ESP32 FFT TIME - Main
+ * Proyecto de adquisición, procesamiento y visualización de señales en tiempo real con ESP32.
+ * Incluye dashboard web, WebSocket, OLED y FFT en C++.
+ *
+ * Copyright (c) 2025 Alvaro Salazar
+ * Licensed under the MIT License.
+ *
+ * Repositorio: https://github.com/alvaro-salazar/esp32-fft-web
+ */
+
 #include <Arduino.h>
 #include <libwifi.h>
 #include "libdisplay.h"

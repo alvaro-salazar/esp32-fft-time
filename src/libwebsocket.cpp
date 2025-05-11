@@ -1,3 +1,9 @@
+/*
+ * ESP32 FFT TIME - WebSocket
+ * Copyright (c) 2025 Alvaro Salazar
+ * Licensed under the MIT License.
+ */
+
 #include <SPIFFS.h>
 #include "libwebsocket.h"
 

@@ -1,3 +1,9 @@
+/*
+ * ESP32 FFT TIME - Display
+ * Copyright (c) 2025 Alvaro Salazar
+ * Licensed under the MIT License.
+ */
+
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Wire.h>
